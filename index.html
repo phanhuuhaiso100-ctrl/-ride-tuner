@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gara Độ Xe Ảo 2D - VIP Customizer</title>
+    <!-- Tailwind CSS & React CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Nhúng CSS & Data VIP vừa tạo -->
+    <link rel="stylesheet" href="styles.css">
+    <script src="data.js"></script>
+</head>
+<body class="text-slate-100 min-h-screen pb-16">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function App() {
+            const bikesData = window.VIPBikesData || {};
+            const bikeKeys = Object.keys(bikesData);
+            
+            const [selectedBikeKey, setSelectedBikeKey] = useState(bikeKeys[0] || "exciter155");
+            const bike = bikesData[selectedBikeKey];
+
+            // State lưu món đồ chơi đang chọn
+            const [selectedColor, setSelectedColor] = useState(bike?.bodyColors[0]);
+            const [selectedWheel, setSelectedWheel] = useState(bike?.wheels[0]);
+            const [selectedExhaust, setSelectedExhaust] = useState(bike?.exhausts[0]);
+            const [selectedShock, setSelectedShock] = useState(bike?.shocks[0]);
+            const [selectedBrake, setSelectedBrake] = useState(bike?.brakes[0]);
+
+            // Cập nhật cấu hình khi đổi xe
+            const handleBikeSwitch = (key) => {
+                setSelectedBikeKey(key);
+                const newBike = bikesData[key];
+                if (newBike) {
+                    setSelectedColor(newBike.bodyColors[0]);
+                    setSelectedWheel(newBike.wheels[0]);
+                    setSelectedExhaust(newBike.exhausts[0]);
+                    setSelectedShock(newBike.shocks[0]);
+                    setSelectedBrake(newBike.brakes[0]);
+                }
+            };
+
+            // Tính tổng giá trị nâng cấp
+            const upgradeCost = (selectedWheel?.price || 0) + 
+                                (selectedExhaust?.price || 0) + 
+                                (selectedShock?.price || 0) + 
+                                (selectedBrake?.price || 0);
+
+            const totalFullPrice = (bike?.basePrice || 0) + upgradeCost;
+
+            return (
+                <div className="max-w-md mx-auto p-4 space-y-5">
+                    {/* Header Logo */}
+                    <header className="text-center pt-2">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px] font-bold tracking-wider uppercase">
+                            ⚡ V-GARAGE 2D • VIP EDITION
+                        </span>
+                        <h1 className="text-2xl font-black font-racing text-gradient-gold mt-2 uppercase">
+                            XƯỞNG ĐỘ XE ẢO
+                        </h1>
+                        <p className="text-xs text-slate-400 mt-1">Phối đồ chơi, thử màu sơn trước khi chi tiền thật</p>
+                    </header>
+
+                    {/* Thanh Chọn Loại Xe */}
+                    <div className="grid grid-cols-2 gap-2 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800">
+                        {bikeKeys.map((key) => (
+                            <button
+                                key={key}
+                                onClick={() => handleBikeSwitch(key)}
+                                className={`py-2.5 px-3 rounded-xl text-xs font-bold font-racing transition-all duration-300 ${
+                                    selectedBikeKey === key 
+                                    ? "bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20" 
+                                    : "text-slate-400 hover:text-white"
+                                }`}
+                            >
+                                {bikesData[key].name}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* KHUNG PREVIEW MÔ HÌNH XE 2D */}
+                    <div className="glass-card p-5 rounded-3xl relative overflow-hidden flex flex-col items-center border-amber-500/20">
+                        <div className="w-full flex justify-between items-center text-[10px] font-mono text-slate-400 mb-1">
+                            <span className="text-amber-400 font-bold">MODEL: {bike?.name}</span>
+                            <span className="bg-slate-800 px-2 py-0.5 rounded text-slate-300">{selectedColor?.name}</span>
+                        </div>
+
+                        {/* Đồ Họa SVG Độ Xe */}
+                        <div className="w-full h-44 my-2 flex items-center justify-center bike-svg-container">
+                            <svg viewBox="0 0 400 200" className="w-full h-full drop-shadow-[0_12px_24px_rgba(0,0,0,0.9)]">
+                                {/* Khung Gầm */}
+                                <path d="M 95 125 L 155 80 L 255 80 L 305 125 M 155 80 L 225 135" stroke="#334155" strokeWidth="9" fill="none" strokeLinecap="round" />
+                                
+                                {/* Dàn Áo Phối Màu */}
+                                <path 
+                                    d="M 135 85 Q 175 45 245 65 Q 285 75 265 110 Q 215 95 165 120 Z" 
+                                    fill={selectedColor?.hex || "#dc2626"} 
+                                    className="transition-all duration-300"
+                                />
+                                <path 
+                                    d="M 225 65 L 295 45 L 275 78 Z" 
+                                    fill={selectedColor?.hex || "#dc2626"} 
+                                    opacity="0.85"
+                                />
+
+                                {/* Bánh Trước + Mâm */}
+                                <g transform="translate(90, 138)">
+                                    <circle cx="0" cy="0" r="36" stroke="#0f172a" strokeWidth="12" fill="none" />
+                                    <circle cx="0" cy="0" r="28" stroke={selectedWheel?.color || "#eab308"} strokeWidth="5" fill="none" className="transition-all duration-300" />
+                                    <line x1="-24" y1="0" x2="24" y2="0" stroke={selectedWheel?.color} strokeWidth="3" />
+                                    <line x1="0" y1="-24" x2="0" y2="24" stroke={selectedWheel?.color} strokeWidth="3" />
+                                </g>
+
+                                {/* Bánh Sau + Mâm */}
+                                <g transform="translate(310, 138)">
+                                    <circle cx="0" cy="0" r="36" stroke="#0f172a" strokeWidth="12" fill="none" />
+                                    <circle cx="0" cy="0" r="28" stroke={selectedWheel?.color || "#eab308"} strokeWidth="5" fill="none" className="transition-all duration-300" />
+                                    <line x1="-24" y1="0" x2="24" y2="0" stroke={selectedWheel?.color} strokeWidth="3" />
+                                    <line x1="0" y1="-24" x2="0" y2="24" stroke={selectedWheel?.color} strokeWidth="3" />
+                                </g>
+
+                                {/* Phuộc Sau */}
+                                <line x1="255" y1="98" x2="295" y2="132" stroke={selectedShock?.color || "#f59e0b"} strokeWidth="8" strokeLinecap="round" className="transition-all duration-300" />
+
+                                {/* Heo Dầu / Phanh */}
+                                <circle cx="115" cy="138" r="6" fill={selectedBrake?.color || "#a3a3a3"} />
+
+                                {/* Pô Xe */}
+                                <path d="M 210 135 L 280 148 L 328 132" stroke="#475569" strokeWidth="9" strokeLinecap="round" fill="none" />
+                                <path d="M 280 148 L 332 130" stroke={selectedExhaust?.color || "#171717"} strokeWidth="11" strokeLinecap="round" fill="none" />
+                            </svg>
+                        </div>
+
+                        {/* Tổng quan món đồ đang chọn */}
+                        <div className="w-full grid grid-cols-2 gap-2 text-[11px] bg-slate-950/60 p-3 rounded-2xl border border-slate-800/80 mt-1">
+                            <div><span className="text-slate-500">Mâm:</span> <span className="text-amber-400 font-semibold">{selectedWheel?.name}</span></div>
+                            <div><span className="text-slate-500">Pô:</span> <span className="text-amber-400 font-semibold">{selectedExhaust?.name}</span></div>
+                            <div><span className="text-slate-500">Phuộc:</span> <span className="text-amber-400 font-semibold">{selectedShock?.name}</span></div>
+                            <div><span className="text-slate-500">Phanh:</span> <span className="text-amber-400 font-semibold">{selectedBrake?.name}</span></div>
+                        </div>
+                    </div>
+
+                    {/* BẢNG TÙY CHỈNH DANH MỤC ĐỒ CHƠI */}
+                    <div className="space-y-4">
+                        
+                        {/* 1. Chọn Dàn Áo */}
+                        <div className="glass-card p-4 rounded-2xl">
+                            <label className="block text-xs font-bold font-racing text-amber-400 uppercase mb-2.5">
+                                🎨 1. Dàn Áo & Màu Sơn
+                            </label>
+                            <div className="grid grid-cols-2 gap-2">
+                                {bike?.bodyColors.map((color) => (
+                                    <div
+                                        key={color.id}
+                                        onClick={() => setSelectedColor(color)}
+                                        className={`p-2.5 rounded-xl cursor-pointer flex items-center gap-2.5 border transition-all ${
+                                            selectedColor?.id === color.id ? "glass-card-active" : "border-slate-800 bg-slate-900/50"
+                                        }`}
+                                    >
+                                        <span className="w-4 h-4 rounded-full border border-white/20 shrink-0" style={{ backgroundColor: color.hex }}></span>
+                                        <div className="overflow-hidden">
+                                            <span className="text-xs font-bold block truncate">{color.name}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* 2. Chọn Mâm */}
+                        <div className="glass-card p-4 rounded-2xl">
+                            <label className="block text-xs font-bold font-racing text-amber-400 uppercase mb-2.5">
+                                🛞 2. Cặp Mâm / Vành Đúc
+                            </label>
+                            <div className="space-y-2">
+                                {bike?.wheels.map((w) => (
+                                    <div
+                                        key={w.id}
+                                        onClick={() => setSelectedWheel(w)}
+                                        className={`p-2.5 rounded-xl cursor-pointer flex justify-between items-center border transition-all ${
+                                            selectedWheel?.id === w.id ? "glass-card-active" : "border-slate-800 bg-slate-900/50"
+                                        }`}
+                                    >
+                                        <div>
+                                            <span className="text-xs font-bold block">{w.name}</span>
+                                            <span className="text-[10px] text-slate-500">Hãng: {w.brand}</span>
+                                        </div>
+                                        <span className="text-xs font-bold font-mono text-amber-400">
+                                            {w.price === 0 ? "Theo xe" : `+${w.price.toLocaleString("vi-VN")}đ`}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* 3. Chọn Pô */}
+                        <div className="glass-card p-4 rounded-2xl">
+                            <label className="block text-xs font-bold font-racing text-amber-400 uppercase mb-2.5">
+                                🔊 3. Pô & Ống Xả
+                            </label>
+                            <div className="space-y-2">
+                                {bike?.exhausts.map((ex) => (
+                                    <div
+                                        key={ex.id}
+                                        onClick={() => setSelectedExhaust(ex)}
+                                        className={`p-2.5 rounded-xl cursor-pointer flex justify-between items-center border transition-all ${
+                                            selectedExhaust?.id === ex.id ? "glass-card-active" : "border-slate-800 bg-slate-900/50"
+                                        }`}
+                                    >
+                                        <div>
+                                            <span className="text-xs font-bold block">{ex.name}</span>
+                                            <span className="text-[10px] text-slate-500">Âm thanh: {ex.type}</span>
+                                        </div>
+                                        <span className="text-xs font-bold font-mono text-amber-400">
+                                            {ex.price === 0 ? "Theo xe" : `+${ex.price.toLocaleString("vi-VN")}đ`}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* 4. Chọn Phuộc */}
+                        <div className="glass-card p-4 rounded-2xl">
+                            <label className="block text-xs font-bold font-racing text-amber-400 uppercase mb-2.5">
+                                🏍️ 4. Phuộc Nhún Sau
+                            </label>
+                            <div className="space-y-2">
+                                {bike?.shocks.map((sh) => (
+                                    <div
+                                        key={sh.id}
+                                        onClick={() => setSelectedShock(sh)}
+                                        className={`p-2.5 rounded-xl cursor-pointer flex justify-between items-center border transition-all ${
+                                            selectedShock?.id === sh.id ? "glass-card-active" : "border-slate-800 bg-slate-900/50"
+                                        }`}
+                                    >
+                                        <div>
+                                            <span className="text-xs font-bold block">{sh.name}</span>
+                                            <span className="text-[10px] text-slate-500">Phân loại: {sh.type}</span>
+                                        </div>
+                                        <span className="text-xs font-bold font-mono text-amber-400">
+                                            {sh.price === 0 ? "Theo xe" : `+${sh.price.toLocaleString("vi-VN")}đ`}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* 5. Chọn Heo Phanh */}
+                        <div className="glass-card p-4 rounded-2xl">
+                            <label className="block text-xs font-bold font-racing text-amber-400 uppercase mb-2.5">
+                                🛑 5. Heo Dầu / Phanh
+                            </label>
+                            <div className="space-y-2">
+                                {bike?.brakes.map((br) => (
+                                    <div
+                                        key={br.id}
+                                        onClick={() => setSelectedBrake(br)}
+                                        className={`p-2.5 rounded-xl cursor-pointer flex justify-between items-center border transition-all ${
+                                            selectedBrake?.id === br.id ? "glass-card-active" : "border-slate-800 bg-slate-900/50"
+                                        }`}
+                                    >
+                                        <span className="text-xs font-bold">{br.name}</span>
+                                        <span className="text-xs font-bold font-mono text-amber-400">
+                                            {br.price === 0 ? "Theo xe" : `+${br.price.toLocaleString("vi-VN")}đ`}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                    </div>
+
+                    {/* TỔNG TIỀN VÀ NÚT LƯU CẤU HÌNH (STICKY BOTOM) */}
+                    <div className="sticky bottom-4 z-50 bg-gradient-to-r from-amber-500 to-amber-600 p-4 rounded-3xl text-slate-950 flex justify-between items-center shadow-2xl shadow-amber-500/30">
+                        <div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-900/80 block">
+                                Tiền đồ chơi dự tính:
+                            </span>
+                            <span className="text-lg font-black font-mono">
+                                {upgradeCost === 0 ? "0 VNĐ" : `${upgradeCost.toLocaleString("vi-VN")}đ`}
+                            </span>
+                        </div>
+                        <button 
+                            onClick={() => alert(`Đã lưu bản phối ${bike?.name}!\n- Tổng tiền đồ chơi: ${upgradeCost.toLocaleString("vi-VN")}đ\n- Tổng giá trị cả xe: ${totalFullPrice.toLocaleString("vi-VN")}đ`)}
+                            className="bg-slate-950 text-amber-400 font-bold text-xs px-4 py-3 rounded-2xl hover:bg-slate-900 font-racing transition-transform active:scale-95"
+                        >
+                            LƯU BẢN PHỐI
+                        </button>
+                    </div>
+
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
